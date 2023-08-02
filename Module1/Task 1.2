@@ -1,0 +1,24 @@
+// defining the pin numbers
+volatile int motionSensorState = LOW; // the state of the motion sensor, volatile because it is changed in ISR
+const int ledPin = 13; // the number of the LED pin
+
+// Interrupt Service Routine (ISR)
+void motionDetected() {
+  motionSensorState = digitalRead(2); // Read the state of the sensor
+  digitalWrite(ledPin, motionSensorState); // Set the LED to the sensor state
+}
+
+void setup() {
+  pinMode(2, INPUT); // initialize the motion sensor pin as an input
+  pinMode(ledPin, OUTPUT); // initialize the LED as an output
+  Serial.begin(9600); // starting the serial communication at 9600 bits per second
+
+  // Attach the interrupt to the motionDetected() function
+  attachInterrupt(digitalPinToInterrupt(2), motionDetected, CHANGE);
+}
+
+void loop() {
+  Serial.println(motionSensorState); 
+  delay(1000);
+}
+
