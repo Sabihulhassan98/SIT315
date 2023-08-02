@@ -1,0 +1,16 @@
+// defining the pin numbers
+const int motionSensorPin = 2; // the number of the motion sensor pin
+const int ledPin = 13; // the number of the LED pin
+
+void setup() {
+	pinMode(motionSensorPin, INPUT); // initialize the motion sensor pin as an input
+	pinMode(ledPin, OUTPUT); // initialize the LED as an output
+	Serial.begin(9600); // starting the serial communication at 9600 bits per second
+}
+
+void loop() {
+	int motionSensorState = digitalRead(motionSensorPin); // reading the state of the motion sensor value
+	digitalWrite(ledPin, motionSensorState); // setting the LED to the sensor state
+	Serial.println(motionSensorState); // sending the state of sensor to serial port 
+	delay(1000); // adding delay for a second
+}
