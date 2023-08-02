@@ -8,6 +8,7 @@ void setup() {
 	Serial.begin(9600); // starting the serial communication at 9600 bits per second
 }
 
+
 void loop() {
 	int motionSensorState = digitalRead(motionSensorPin); // reading the state of the motion sensor value
 	digitalWrite(ledPin, motionSensorState); // setting the LED to the sensor state
