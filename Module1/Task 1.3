@@ -1,0 +1,40 @@
+// Defining the pin numbers
+const int motionSensorPin = 2; // The number of the motion sensor pin
+const int ledPinMotion = 13; // The number of the LED pin for the motion sensor
+const int lightSensorPin = A0; // The number of the light sensor pin
+const int ledPinLight = 9; // The number of the LED pin for the light sensor
+
+volatile int motionSensorState = LOW; // The state of the motion sensor, volatile because it is changed in ISR
+
+// Interrupt Service Routine (ISR)
+void motionDetected() {
+  motionSensorState = digitalRead(motionSensorPin); // Read the state of the sensor
+  digitalWrite(ledPinMotion, motionSensorState); // Set the LED to the sensor state
+  Serial.println(motionSensorState); // Print the motion sensor state
+}
+
+void checkLight() {
+  int lightSensorValue = analogRead(lightSensorPin); // Read the value of the sensor
+  Serial.println(lightSensorValue); // Print the light sensor value
+  if (lightSensorValue < 500) { // Replace 500 with the value you noted down
+    digitalWrite(ledPinLight, HIGH); // Turn on the LED if it's dark
+  } else {
+    digitalWrite(ledPinLight, LOW); // Turn off the LED if it's not dark
+  }
+}
+
+void setup() {
+  pinMode(motionSensorPin, INPUT); // Initialize the motion sensor pin as an input
+  pinMode(ledPinMotion, OUTPUT); // Initialize the LED as an output for the motion sensor
+  pinMode(lightSensorPin, INPUT); // Initialize the light sensor pin as an input
+  pinMode(ledPinLight, OUTPUT); // Initialize the LED as an output for the light sensor
+  Serial.begin(9600); // Starting the serial communication at 9600 bits per second
+
+  // Attach the interrupt to the motionDetected() function
+  attachInterrupt(digitalPinToInterrupt(motionSensorPin), motionDetected, CHANGE);
+}
+
+void loop() {
+  checkLight(); // Check the light level and control the LED
+  delay(1000); // Adding delay for a second
+}
