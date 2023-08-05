@@ -1,0 +1,69 @@
+#include <avr/interrupt.h>
+#include <avr/io.h>
+
+// Defining the pin numbers
+const int motionSensorPin = 2; 
+const int ledPinMotion = 7; 
+const int lightSensorPin = A0;
+const int ledPinLight = 9; 
+const int tmp36Pin = A1; // Define the pin where the TMP36 is connected
+const int timerLedPin = 11; // Define the pin where the timer-controlled LED is connected
+
+volatile int motionSensorState = LOW; 
+
+// Pin Change Interrupt Service Routine (ISR)
+ISR(PCINT2_vect) {
+  motionSensorState = digitalRead(motionSensorPin); // Reading the state of the sensor
+  digitalWrite(ledPinMotion, motionSensorState); // Setting the LED to the sensor state
+  Serial.println(motionSensorState); // Printing the motion sensor state
+}
+
+ISR(TIMER1_COMPA_vect) {
+  digitalWrite(timerLedPin, !digitalRead(timerLedPin)); // Toggle the state of the LED
+}
+
+void checkLight() {
+  int lightSensorValue = analogRead(lightSensorPin); // Reading the value of the sensor
+  Serial.println(lightSensorValue); // Printing the light sensor value
+  if (lightSensorValue < 500) { 
+    digitalWrite(ledPinLight, HIGH); // Turn on the LED if it's dark
+  } else {
+    digitalWrite(ledPinLight, LOW); // Turn off the LED if it's not dark
+  }
+}
+
+void checkTemperature() {
+  int sensorVal = analogRead(tmp36Pin); // Read the analog sensor value
+  float voltage = (sensorVal/1024.0) * 5.0; // Convert the sensor reading to voltage
+  float temperature = (voltage - 0.5) * 100 ; // Convert the voltage to temperature in Celsius
+  Serial.print("TEMPERATURE = ");
+  Serial.print(temperature); // Print the temperature
+  Serial.println(" C");
+}
+
+void setup() {
+  pinMode(motionSensorPin, INPUT); // Initialize the motion sensor pin as an input
+  pinMode(ledPinMotion, OUTPUT); // Initialize the LED as an output for the motion sensor
+  pinMode(lightSensorPin, INPUT); // Initialize the light sensor pin as an input
+  pinMode(ledPinLight, OUTPUT); // Initialize the LED as an output for the light sensor
+  pinMode(tmp36Pin, INPUT); // Initialize the TMP36 sensor pin as an input
+  pinMode(timerLedPin, OUTPUT); // Initialize the timer-controlled LED pin as an output
+  Serial.begin(9600); // Starting the serial communication at 9600 bits per second
+
+  // Pin Change Interrupt settings
+  *digitalPinToPCMSK(motionSensorPin) |= bit (digitalPinToPCMSKbit(motionSensorPin));  // enable pin
+  PCIFR  |= bit (digitalPinToPCICRbit(motionSensorPin)); // clear any outstanding interrupt
+  PCICR  |= bit (digitalPinToPCICRbit(motionSensorPin)); // enable interrupt for the group
+  
+  // setting Timer1 
+  TCCR1A = 0;
+  TCCR1B = _BV(CS12) | _BV(WGM12); // CTC mode, prescaler = 256
+  OCR1A = 49999; // Output Compare Register 
+  TIMSK1 = _BV(OCIE1A); // Output Compare Interrupt Enable
+}
+
+void loop() {
+  checkLight(); // Checking the light level 
+  checkTemperature(); // Checking the temperature
+  delay(1000); // Adding delay for a second
+}
